@@ -55,7 +55,7 @@ def f(t, params):
     a,b,c = params
     #print('function f values: ' + str(params))
     return a*(t**2) + (b*t) + c
-
+    
 def show_preds(preds, ax=None):
     if ax is None: ax=plt.subplots()[1]
     ax.scatter(time, speed)
