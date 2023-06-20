@@ -19,38 +19,39 @@ path = Path(base_dir)
 # 2) use the list to generate tensors for each image
 # 3) Adjust the values for the tensors to be 0-1 instead of 0-255
 #-----------------------------------------------------------
-def prep_data():
 
-   print("1) Making a list of training files to be used for 3's and 7's               " + time_getter() )
-   threes = (path/'train'/'3').ls().sorted()
-   sevens = (path/'train'/'7').ls().sorted()
 
-   print("2) Building tensors for 3's and 7's training files                          " + time_getter())
-   seven_tensors = [tensor(Image.open(o)) for o in sevens]
-   three_tensors = [tensor(Image.open(o)) for o in threes]
+print("1) Making a list of training files to be used for 3's and 7's               " + time_getter() )
+threes = (path/'train'/'3').ls().sorted()
+sevens = (path/'train'/'7').ls().sorted()
+   
+print("2) Building tensors for 3's and 7's training files                          " + time_getter())
+# This is not creating tensors just lists of lists,  6131 rows of 28 x 28 for each image
+seven_tensors = [tensor(Image.open(o)) for o in sevens]
+three_tensors = [tensor(Image.open(o)) for o in threes]
 
-   print("3) Stacking and adjusting tensor values for 3's and 7's training files      " + time_getter())
-   stacked_sevens = torch.stack(seven_tensors).float()/255
-   stacked_threes = torch.stack(three_tensors).float()/255
+print("3) Stacking and adjusting tensor values for 3's and 7's training files      " + time_getter())
+   
+# Now this is in tensor form
+stacked_sevens = torch.stack(seven_tensors).float()/255
+stacked_threes = torch.stack(three_tensors).float()/255
 
-   print("4) Calculating mean for all pixels in the training images for 3 and 7       " + time_getter())   
-   mean3 = stacked_threes.mean(0)
-   mean7 = stacked_sevens.mean(0)
+print("4) Stacking and adjusting tensor values for 3's and 7's validation files    " + time_getter())
+# More concise way of doing the first three steps for the validation sets
+valid_3_tens = torch.stack([tensor(Image.open(o)) for o in (path/'valid'/'3').ls()])
+valid_7_tens = torch.stack([tensor(Image.open(o)) for o in (path/'valid'/'7').ls()])
+   
+print("5) Adjusting tensor values for 3's and 7's validation files                 " + time_getter())
+valid_3_tens = valid_3_tens.float()/255
+valid_7_tens = valid_7_tens.float()/255
 
-   print("5) Stacking and adjusting tensor values for 3's and 7's validation files    " + time_getter())
-   valid_3_tens = torch.stack([tensor(Image.open(o)) for o in (path/'valid'/'3').ls()])
-   valid_7_tens = torch.stack([tensor(Image.open(o)) for o in (path/'valid'/'7').ls()])
-   print("6) Adjusting tensor values for 3's and 7's validation files                 " + time_getter())
-   valid_3_tens = valid_3_tens.float()/255
-   valid_7_tens = valid_7_tens.float()/255
-
-   print("Done                                                                        " + time_getter())
+print("Done                                                                        " + time_getter())
 
 
 #---------------------------------------------------------------
 # working area
 #---------------------------------------------------------------
-prep_data()
+
 
 # We already have our independent variables x
 # —these are the images themselves. 
@@ -62,12 +63,21 @@ prep_data()
 train_x = torch.cat([stacked_threes, stacked_sevens]).view(-1, 28*28)
 
 # We need a label for each image. We'll use 1 for 3s and 0 for 7s:
-
+# unsqueeze does the following:
+#   Returns a new tensor with a dimension of size one inserted at the specified position. [...]
+#   >>> x = torch.tensor([1, 2, 3, 4])
+#   >>> torch.unsqueeze(x, 0)
+#   tensor([[ 1,  2,  3,  4]])
+#   >>> torch.unsqueeze(x, 1)
+#   tensor([[ 1],
+#           [ 2],
+#           [ 3],
+#           [ 4]])
 train_y = tensor([1]*len(threes) + [0]*len(sevens)).unsqueeze(1)
 
 # A Dataset in PyTorch is required to return a tuple of (x,y) when indexed. 
 # Python provides a zip function which, when combined with list, provides a simple way to get this functionality:
-
+# zip combines the two tensors and the assigns it to the list, dset
 dset = list(zip(train_x,train_y))
 
 # Do this for the validation set as well
@@ -108,3 +118,22 @@ preds = linear1(train_x)
 # with:
 
 corrects = (preds>0.0).float() == train_y
+
+corrects.float().mean().item()
+
+# Now let's see what the change in accuracy is for a small change in one of the weights 
+# (note that we have to ask PyTorch not to calculate gradients as we do this, which is 
+# what with torch.no_grad() is doing here):
+
+with torch.no_grad(): weights[0] *= 1.0001
+
+print(f'The first weight is {weights[0]}')
+
+preds = linear1(train_x)
+
+print(f' {((preds>0.0).float() == train_y).float().mean().item()} ')
+
+# First try at a loss function
+def mnist_loss(predictions, targets):
+    predictions = predictions.sigmoid()
+    return torch.where(targets==1, 1-predictions, predictions).mean()
