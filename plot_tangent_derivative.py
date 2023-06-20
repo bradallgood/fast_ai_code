@@ -11,10 +11,10 @@ def slope(x):
     return 2*x
 
 # Define x data range for parabola
-x = np.linspace(-2,2,100)
+x = np.linspace(-6,6,100)
 
 # Choose point to plot tangent line
-x1 = -1
+x1 = 2
 y1 = f(x1)
 
 # Define tangent line
@@ -26,7 +26,7 @@ def line(x, x1, y1):
 xrange = np.linspace(x1-1, x1+1, 10)
 
 # Plot the figure
-plt.figure(figsize=(6,4))
+plt.figure(figsize=(12,8))
 plt.suptitle('x1=' + str(x1) + '   Slope=' + str(slope(x1)))
 plt.grid()
 plt.plot(x, f(x))
