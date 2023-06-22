@@ -1,6 +1,5 @@
 from ipywidgets import interact
 from fastai.basics import *
-
 import numpy as np
 
 plt.rc('figure', dpi=90)
