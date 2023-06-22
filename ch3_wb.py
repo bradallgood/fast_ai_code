@@ -54,47 +54,27 @@ np.random.seed(42)
 x = torch.linspace(-5, 5, steps=1000)[:,None]
 y = add_noise(f(x), 0.05, 1.0)
 
-plt.scatter(x,y)
-#plt.show()
-plt.close()
-
 abc = torch.tensor([1.1,1.1,1.1]).requires_grad_()
-
-loss_hold = []
-
-weight_hold = []
-
-grad_hold = []
-
 
 for i in range(100):
     print(f'--------------- Round {i} -------------------------')
+
     loss = quad_mae(abc)
     loss.backward()
-    with torch.no_grad(): abc -= abc.grad*0.000 1
+    with torch.no_grad(): abc -= abc.grad*0.0001
 
-    print(f'Loss   : {loss.data}')
-    print(f'Params : {abc}')
-    print(f'grad   : {abc.grad}')
-
-    loss_i = loss.clone().detach().tolist()
-    weight_i = abc.clone().detach().tolist()
-    grad_i = abc.grad.clone().detach().tolist()
-
-    loss_hold.append(loss_i)    
-    weight_hold.append(weight_i)
-    grad_hold.append(grad_i)
+    if i == 0:
+        loss_hold = np.array(loss.clone().detach().numpy())
+        weight_hold = np.array([abc.clone().detach().numpy()])
+        grad_hold = np.array([abc.grad.clone().detach().numpy()])
+    else:
+        loss_hold = np.append(loss_hold,loss.clone().detach().numpy())    
+        weight_hold = np.append(weight_hold,[abc.clone().detach().numpy()],axis=0)
+        grad_hold = np.append(grad_hold,[abc.grad.clone().detach().numpy()],axis=0)
 
 x_hold = []
 for w in range(len(loss_hold)):
     x_hold.append(w)
-
-plt.scatter(x_hold,loss_hold)
-#plt.show()
-plt.close()
-
-weight_np = np.array(weight_hold)
-grad_np = np.array(grad_hold)
 
 # ------------------------------------------ chart code -------------------------------
 fmt = '%.7f'
@@ -106,11 +86,11 @@ fig, axd = plt.subplot_mosaic([['loss', 'loss','loss'],
                               figsize=(10, 5), layout="constrained")
 fig.patch.set_facecolor('grey')
 make_chart('loss',loss_hold,x_hold)
-make_chart('aweight',weight_np[:,0],x_hold)
-make_chart('bweight',weight_np[:,1],x_hold)
-make_chart('cweight',weight_np[:,2],x_hold)
-make_chart('agrad',grad_np[:,0],x_hold)
-make_chart('bgrad',grad_np[:,1],x_hold)
-make_chart('cgrad',grad_np[:,2],x_hold)
+make_chart('aweight',weight_hold[:,0],x_hold)
+make_chart('bweight',weight_hold[:,1],x_hold)
+make_chart('cweight',weight_hold[:,2],x_hold)
+make_chart('agrad',grad_hold[:,0],x_hold)
+make_chart('bgrad',grad_hold[:,1],x_hold)
+make_chart('cgrad',grad_hold[:,2],x_hold)
 fig.suptitle('Loss / Weights / Grad')
 plt.show()
