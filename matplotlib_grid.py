@@ -7,8 +7,6 @@ def annotate_axes(ax, text, fontsize):
     ax.text(0.5, 0.5, text, transform=ax.transAxes,
             ha="center", va="center", fontsize=fontsize, color="red")
     
-
-
 def WhileRun(random_normal):
     print("in the function WhileRun")
     abc = 0
@@ -53,7 +51,6 @@ map_mean = mean(map_list)
 
 iter_list = [while_mean,for_mean,map_mean]
 iter_label = ['While','For','Map']
-
 
 fmt = '%.7f'
 label_type = 'center'
