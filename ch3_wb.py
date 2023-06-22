@@ -53,7 +53,6 @@ def make_chart(k,list,x_l,fontsize=10):
 np.random.seed(42)
 x = torch.linspace(-5, 5, steps=1000)[:,None]
 y = add_noise(f(x), 0.05, 1.0)
-
 abc = torch.tensor([1.1,1.1,1.1]).requires_grad_()
 
 for i in range(100):
@@ -79,7 +78,6 @@ for w in range(len(loss_hold)):
 # ------------------------------------------ chart code -------------------------------
 fmt = '%.7f'
 label_type = 'center'
-
 fig, axd = plt.subplot_mosaic([['loss', 'loss','loss'],
                                ['aweight','bweight','cweight'],
                                ['agrad','bgrad','cgrad']],
